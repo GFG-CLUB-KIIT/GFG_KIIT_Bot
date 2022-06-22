@@ -1,0 +1,11 @@
+*.properties
+/src/main/ja
+/src/main/resources/privateResources.properties
+/build/
+/out/
+/logs/
+/gradle/
+/.gradle/
+/.idea/
+/build.gradle
+/settings.gradle
