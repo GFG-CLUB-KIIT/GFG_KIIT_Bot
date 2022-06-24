@@ -2,6 +2,7 @@ package in.mcxiv.gfg_bot.mods;
 
 import in.mcxiv.gfg_bot.GFG_KIIT_Bot;
 import in.mcxiv.gfg_bot.SpecialisedListenerAdapter;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,6 +12,19 @@ public class InviteMe extends SpecialisedListenerAdapter {
 
     public InviteMe(GFG_KIIT_Bot bot) {
         this.bot = bot;
+    }
+
+    @Override
+    public String getName() {
+        return "Bot Invitation";
+    }
+
+    @Override
+    public EmbedBuilder getHelpEmbed() {
+        return new EmbedBuilder()
+                .addField("Invite this bot to your own server.", """
+                        Just use the command _invite_ to receive a link, using which you can add this bot to servers you own.
+                        """, false);
     }
 
     @Override

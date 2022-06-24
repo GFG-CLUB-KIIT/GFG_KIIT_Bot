@@ -35,7 +35,7 @@ public class SJF4JBinder implements ILoggerFactory {
     @Format({"  :: :#f80 @520 <D hh;mm;ss> %*30s b: ::", "::\t:#940 @fca n %-130s:"})
     public final class SLF4J_to_FLOG_Bridge extends MarkerIgnoringBase {
 
-        static final String NAME = "SLF4J";
+        static final String NAME = "JDA - Internals";
 
         public void logIt(LogLevel logLevel, String msg) {
             if (logLevel.accepted())

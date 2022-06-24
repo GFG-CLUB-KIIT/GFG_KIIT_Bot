@@ -19,7 +19,7 @@ public class Resources {
     public final FLog log;
     public final int cores;
     public final String inviteLink;
-    final String botCommand = "kb";
+    public final String botCommand = "kb";
     final String botToken;
 
     public Resources() {
@@ -29,6 +29,8 @@ public class Resources {
             System.out.println("Welp... Setting up Parallelism Flag.");
             System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism", "1");
         }
+
+        //  250 Jaspinik, 322 gfgkiitbot
 
         FLog file_logger = FileLog.getNew(NAME_U + ".log");
         FLog strm_logger = FLog.getNew();

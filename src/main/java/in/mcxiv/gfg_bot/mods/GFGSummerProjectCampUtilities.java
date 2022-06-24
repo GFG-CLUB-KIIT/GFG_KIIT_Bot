@@ -1,5 +1,6 @@
 package in.mcxiv.gfg_bot.mods;
 
+import com.mcxiv.logger.tables.Table;
 import in.mcxiv.gfg_bot.GFG_KIIT_Bot;
 import in.mcxiv.gfg_bot.SpecialisedListenerAdapter;
 import in.mcxiv.gfg_bot.utils.Utilities;
@@ -30,6 +31,7 @@ public class GFGSummerProjectCampUtilities extends SpecialisedListenerAdapter {
         this.bot = bot;
     }
 
+
     private static boolean isMessageFromSummerCampProjectCategory(Channel channel) {
         if (!(channel instanceof ICategorizableChannel iCategorizableChannel)) return false;
         if (iCategorizableChannel.getParentCategory() == null) return false;
@@ -51,20 +53,68 @@ public class GFGSummerProjectCampUtilities extends SpecialisedListenerAdapter {
     }
 
     @Override
+    public String getName() {
+        return "Summer Project Camp Helper";
+    }
+
+    @Override
+    public EmbedBuilder getHelpEmbed() {
+        return new EmbedBuilder()
+                .addField("Create a new Channel for Summer Project Camp", """
+                        Please tell us about yourself and your project in the following format
+                        **Item Name: Item Value**
+                                                
+                        Information must include your _Name_, your _Project Name_, your project _Domain_ and your _Project Description_.
+                        Feel free to add in more details using the same format, for example your project's GitHub link...
+                        (The values can be multi-lined.)
+                                                
+                        For example:
+                                                
+                        Name: Anirudh Sharma
+                        Domain: App Development
+                        Project Name: GFG KIIT Bot
+                                                
+                        Project Description:
+                        A simple discord bot written in Java for
+                        automating server management for various
+                        events organised in the GFG KIIT discord
+                        server.
+                                                
+                        Github Link: https://github.com/GFG-CLUB-KIIT/GFG_KIIT_Bot/tree/deployment
+                        """, false)
+                .addField("Deleting channels made by this bot", """
+                        Just type _delete_ and mention any channels you wish to delete.
+                                                
+                        For example,
+                        delete #channel-1 #channel-2
+                                                
+                        This will delete the two channels.
+                        (This command can only delete channels made for Summer Project Camp!)
+                        """, false);
+    }
+
+    @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if (!isMessageFromSummerCampProjectChannel(event.getChannel())) return;
         if (isTheMessageAChannelCommand(event)) return;
 
         var raw_content = bot.stripCommand(event.getMessage().getContentRaw())
                 .strip().replaceAll("[\n\r]+", "\n");
+        if (raw_content.indexOf(':') >= raw_content.indexOf("\n")) return;
+
         var lines = Utilities.simplifyContent(raw_content);
         Map<String, String> fields = linesDoesntContainAllTheRequiredInformation(lines, event);
         if (fields.isEmpty()) return;
 
-        ChannelAction<TextChannel> channel = event.getGuild().createTextChannel(fields.get("Project's Name"));
-        channel.setParent(((TextChannel) event.getChannel()).getParentCategory());
-        channel.setTopic(fields.get("Project's Description"));
-        channel.queue(textChannel -> sendProjectInfoEmbed(event.getMember(), textChannel, fields));
+        try {
+            ChannelAction<TextChannel> channel = event.getGuild().createTextChannel(fields.get("Project's Name"));
+            channel.setParent(((TextChannel) event.getChannel()).getParentCategory());
+            channel.setTopic(fields.get("Project's Description"));
+            channel.queue(textChannel -> sendProjectInfoEmbed(event.getMember(), textChannel, fields));
+        } catch (Throwable t) {
+            bot.error("Sumr Proj Mod", fields.toString());
+            Table.tabulate(bot.resources.log, t);
+        }
     }
 
     private boolean isTheMessageAChannelCommand(MessageReceivedEvent event) {

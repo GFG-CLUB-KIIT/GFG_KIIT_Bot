@@ -2,9 +2,7 @@ package in.mcxiv.gfg_bot;
 
 import com.mcxiv.logger.decorations.Format;
 import com.mcxiv.logger.tables.Table;
-import in.mcxiv.gfg_bot.mods.GFGSummerProjectCampUtilities;
-import in.mcxiv.gfg_bot.mods.InviteMe;
-import in.mcxiv.gfg_bot.mods.ResponsivenessHelper;
+import in.mcxiv.gfg_bot.mods.*;
 import in.mcxiv.tryCatchSuite.Try;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -28,7 +26,6 @@ public class GFG_KIIT_Bot extends ListenerAdapter {
 
     public GFG_KIIT_Bot() {
         refreshResources();
-        initializeBot();
     }
 
     public static GFG_KIIT_Bot getInstance() {
@@ -48,6 +45,7 @@ public class GFG_KIIT_Bot extends ListenerAdapter {
         });
         inputThread.setPriority(Thread.MIN_PRIORITY);
         inputThread.start();
+        getInstance().initializeBot();
     }
 
     private void refreshResources() {
@@ -59,7 +57,7 @@ public class GFG_KIIT_Bot extends ListenerAdapter {
 
         JDABuilder builder = JDABuilder
                 .createDefault(resources.botToken)
-                .setActivity(Activity.watching("you 👀"))
+                .setActivity(Activity.watching("you \uD83D\uDC40"))
                 .disableCache(CacheFlag.VOICE_STATE, CacheFlag.EMOTE)
                 .disableIntents(Arrays.asList(GatewayIntent.values()))
                 .enableIntents(GatewayIntent.GUILD_MESSAGES)
@@ -68,6 +66,8 @@ public class GFG_KIIT_Bot extends ListenerAdapter {
         listenerAdapter.addEventListener(new ResponsivenessHelper());
         listenerAdapter.addEventListener(new InviteMe(this));
         listenerAdapter.addEventListener(new GFGSummerProjectCampUtilities(this));
+        listenerAdapter.addEventListener(new ManageMods(this));
+        listenerAdapter.addEventListener(new HelpCommand(this));
 
         jda = Try.get(builder::build);
         Try.run(jda::awaitReady);
@@ -76,7 +76,7 @@ public class GFG_KIIT_Bot extends ListenerAdapter {
 
     @Override
     public void onReady(@NotNull ReadyEvent event) {
-
+        notice("Bot Event System", "Bot is Ready!");
     }
 
     @Format({"  :: :#0f0 @050 <D hh;mm;ss> %*30s b: ::", "::\t:#090 @dfd n %-130s:"})
@@ -89,10 +89,14 @@ public class GFG_KIIT_Bot extends ListenerAdapter {
         resources.log.prt(title, msg);
     }
 
-    public String stripCommand(String contentRaw) {
+    public String stripCommand(String contentRaw, String command) {
         contentRaw = contentRaw.stripLeading();
-        if (!contentRaw.startsWith(resources.botCommand))
+        if (!contentRaw.startsWith(command))
             return contentRaw;
-        return contentRaw.substring(resources.botCommand.length()).stripLeading();
+        return contentRaw.substring(command.length()).stripLeading();
+    }
+
+    public String stripCommand(String contentRaw) {
+        return stripCommand(contentRaw, resources.botCommand);
     }
 }
