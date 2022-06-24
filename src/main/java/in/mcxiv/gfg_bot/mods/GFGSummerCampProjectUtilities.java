@@ -1,24 +1,22 @@
 package in.mcxiv.gfg_bot.mods;
 
 import in.mcxiv.gfg_bot.GFG_KIIT_Bot;
-import in.mcxiv.tryCatchSuite.Try;
+import in.mcxiv.gfg_bot.SpecialisedListenerAdapter;
+import in.mcxiv.gfg_bot.utils.Utilities;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.restaction.ChannelAction;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Map;
 
-public class GFGSummerCampProjectUtilities extends ListenerAdapter {
+public class GFGSummerCampProjectUtilities extends SpecialisedListenerAdapter {
 
     // IMPORTANT, I have not used Category IDs and Channel IDs so that I can test these on another server too.
 
@@ -26,71 +24,16 @@ public class GFGSummerCampProjectUtilities extends ListenerAdapter {
 
     private static final String CHANNEL_NAME = "projects";
 
-    private static final Pattern rgx_INFORMATION_ENTRY = Pattern.compile("^([\\w]+(?: +[\\w]+)*) *: *(.*)$");
-
     private final GFG_KIIT_Bot bot;
 
     public GFGSummerCampProjectUtilities(GFG_KIIT_Bot bot) {
         this.bot = bot;
     }
 
-    static ArrayList<SPPair> appendToLastElement(ArrayList<SPPair> list, SPPair two) {
-        if (list.size() == 0) return appendAtLast(list, two);
-        SPPair pair = list.get(list.size() - 1);
-        String one = pair.s.strip();
-        two.s = two.s.strip();
-        pair.s = "%s\n%s".formatted(one, two.s).strip();
-        return list;
-    }
-
-    static ArrayList<SPPair> appendAtLast(ArrayList<SPPair> list, SPPair pair) {
-        list.add(pair);
-        return list;
-    }
-
-    static ArrayList<SPPair> mergeLists(ArrayList<SPPair> one, ArrayList<SPPair> two) {
-        one.addAll(two);
-        return one;
-    }
-
-    private static ArrayList<SPPair> reduceSPPairs(ArrayList<SPPair> strings, SPPair pair) {
-        return pair.m.find() ? appendAtLast(strings, pair)
-                : appendToLastElement(strings, pair);
-    }
-
-    static List<SPPair> reduceContent(String content) {
-        return content.lines().map(String::strip)
-                .map(s -> new SPPair(s, rgx_INFORMATION_ENTRY.matcher(s)))
-                .reduce(new ArrayList<>(), GFGSummerCampProjectUtilities::reduceSPPairs, GFGSummerCampProjectUtilities::mergeLists);
-    }
-
-    static List<SSPair> simplifyContent(String content) {
-        return reduceContent(content)
-                .stream().map(spPair -> Try.getAnd(() -> new SSPair(spPair.s)).elseNull())
-                .filter(Objects::nonNull)
-                .toList();
-    }
-
-    private static boolean isOneOf(String actual, String... matches) {
-        actual = actual.replaceAll("[^\\w]", "");
-        for (String match : matches)
-            if (actual.equalsIgnoreCase(match.replaceAll("[^\\w]", "")))
-                return true;
-        return false;
-    }
-
-    private static boolean allIn(String actual, String... matches) {
-        actual = actual.replaceAll("[^\\w]", "").toLowerCase();
-        for (String match : matches)
-            if (!actual.contains(match.replaceAll("[^\\w]", "")))
-                return false;
-        return true;
-    }
-
     private static boolean isMessageFromSummerCampProjectCategory(Channel channel) {
         if (!(channel instanceof ICategorizableChannel iCategorizableChannel)) return false;
         if (iCategorizableChannel.getParentCategory() == null) return false;
-        if (!allIn(iCategorizableChannel.getParentCategory().getName(), CATEGORY_NAME)) return false;
+        if (!Utilities.allIn(iCategorizableChannel.getParentCategory().getName(), CATEGORY_NAME)) return false;
         return true;
     }
 
@@ -103,20 +46,25 @@ public class GFGSummerCampProjectUtilities extends ListenerAdapter {
     }
 
     @Override
+    public boolean isSuperior() {
+        return true;
+    }
+
+    @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if (!isMessageFromSummerCampProjectChannel(event.getChannel())) return;
         if (isTheMessageAChannelCommand(event)) return;
 
         var raw_content = bot.stripCommand(event.getMessage().getContentRaw())
                 .strip().replaceAll("[\n\r]+", "\n");
-        var lines = simplifyContent(raw_content);
-        HashMap<String, String> fields = linesDoesntContainAllTheRequiredInformation(lines, event);
+        var lines = Utilities.simplifyContent(raw_content);
+        Map<String, String> fields = linesDoesntContainAllTheRequiredInformation(lines, event);
         if (fields.isEmpty()) return;
 
         ChannelAction<TextChannel> channel = event.getGuild().createTextChannel(fields.get("Project's Name"));
         channel.setParent(((TextChannel) event.getChannel()).getParentCategory());
         channel.setTopic(fields.get("Project's Description"));
-        channel.queue(textChannel -> sendProjectInfoEmbed(textChannel, fields));
+        channel.queue(textChannel -> sendProjectInfoEmbed(event.getMember(), textChannel, fields));
     }
 
     private boolean isTheMessageAChannelCommand(MessageReceivedEvent event) {
@@ -133,21 +81,22 @@ public class GFGSummerCampProjectUtilities extends ListenerAdapter {
         return true;
     }
 
-    private void sendProjectInfoEmbed(TextChannel textChannel, HashMap<String, String> fields) {
+    private void sendProjectInfoEmbed(Member member, TextChannel textChannel, Map<String, String> fields) {
         EmbedBuilder builder = new EmbedBuilder()
                 .setTitle(fields.get("Project's Name"))
                 .setColor(Color.BLUE);
         fields.remove("Project's Name");
         fields.forEach((k, v) -> builder.addField(k, v, false));
+        builder.addField("Discord ID", member.getAsMention(), false);
         textChannel.sendMessageEmbeds(builder.build()).queue();
     }
 
-    private HashMap<String, String> linesDoesntContainAllTheRequiredInformation(List<SSPair> lines, MessageReceivedEvent event) {
+    private Map<String, String> linesDoesntContainAllTheRequiredInformation(List<Utilities.SSPair> lines, MessageReceivedEvent event) {
         lines = new ArrayList<>(lines);
         ArrayList<String[]> missingFields = new ArrayList<>();
-        HashMap<String, String> foundFields = new HashMap<>();
+        LinkedHashMap<String, String> foundFields = new LinkedHashMap<>();
 
-        List<SSPair> dataItem = lines.stream().filter(spPair -> isOneOf(spPair.s, "name")).toList();
+        List<Utilities.SSPair> dataItem = lines.stream().filter(spPair -> Utilities.isOneOf(spPair.s, "name")).toList();
         if (dataItem.size() == 1)
             foundFields.put("User Name", dataItem.get(0).m);
         else missingFields.add(new String[]{
@@ -161,7 +110,7 @@ public class GFGSummerCampProjectUtilities extends ListenerAdapter {
         });
         lines.removeAll(dataItem);
 
-        dataItem = lines.stream().filter(spPair -> isOneOf(spPair.s, "domain", "project domain", "projects domain")).toList();
+        dataItem = lines.stream().filter(spPair -> Utilities.isOneOf(spPair.s, "domain", "project domain", "projects domain")).toList();
         if (dataItem.size() == 1)
             foundFields.put("Project's Domain", dataItem.get(0).m);
         else missingFields.add(new String[]{
@@ -177,7 +126,7 @@ public class GFGSummerCampProjectUtilities extends ListenerAdapter {
         });
         lines.removeAll(dataItem);
 
-        dataItem = lines.stream().filter(spPair -> isOneOf(spPair.s, "project name", "projects name")).toList();
+        dataItem = lines.stream().filter(spPair -> Utilities.isOneOf(spPair.s, "project name", "projects name")).toList();
         if (dataItem.size() == 1)
             foundFields.put("Project's Name", dataItem.get(0).m);
         else missingFields.add(new String[]{
@@ -190,7 +139,7 @@ public class GFGSummerCampProjectUtilities extends ListenerAdapter {
         });
         lines.removeAll(dataItem);
 
-        dataItem = lines.stream().filter(spPair -> isOneOf(spPair.s, "description", "project description", "projects description", "desc", "project desc", "projects desc")).toList();
+        dataItem = lines.stream().filter(spPair -> Utilities.isOneOf(spPair.s, "description", "project description", "projects description", "desc", "project desc", "projects desc")).toList();
         if (dataItem.size() == 1)
             foundFields.put("Project's Description", dataItem.get(0).m);
         else missingFields.add(new String[]{
@@ -219,27 +168,4 @@ public class GFGSummerCampProjectUtilities extends ListenerAdapter {
         return foundFields;
     }
 
-    static final class SPPair {
-        public String s;
-        public Matcher m;
-
-        SPPair(String s, Matcher m) {
-            this.s = s;
-            this.m = m;
-        }
-    }
-
-    static final class SSPair {
-        public String s;
-        public String m;
-
-        public SSPair(String pair) {
-            this(pair.substring(0, pair.indexOf(":")).strip(), pair.substring(pair.indexOf(":") + 1).strip());
-        }
-
-        SSPair(String s, String m) {
-            this.s = s;
-            this.m = m;
-        }
-    }
 }

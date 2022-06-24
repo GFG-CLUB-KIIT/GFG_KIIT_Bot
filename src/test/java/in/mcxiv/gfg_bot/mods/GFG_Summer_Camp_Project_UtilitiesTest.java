@@ -1,5 +1,6 @@
 package in.mcxiv.gfg_bot.mods;
 
+import in.mcxiv.gfg_bot.utils.Utilities;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,7 +20,7 @@ class GFG_Summer_Camp_Project_UtilitiesTest {
                     Made using HTML CSS JAVASCRIPT.
                     I want help to Modify it and add frameworks.
                 """;
-        var spp = GFGSummerCampProjectUtilities.reduceContent(string);
+        var spp = Utilities.reduceContent(string);
         assertEquals("Name: loistoa , Intermediate", spp.get(0).s);
         assertEquals("Projects Domain: @Web dev", spp.get(1).s);
         assertEquals("Project Name: Historical Monuments", spp.get(2).s);
@@ -29,7 +30,7 @@ class GFG_Summer_Camp_Project_UtilitiesTest {
                             Made using HTML CSS JAVASCRIPT.
                             I want help to Modify it and add frameworks.""",
                 spp.get(3).s);
-        var ssp = GFGSummerCampProjectUtilities.simplifyContent(string);
+        var ssp = Utilities.simplifyContent(string);
         assertEquals("Name", ssp.get(0).s);
         assertEquals("loistoa , Intermediate", ssp.get(0).m);
         assertEquals("Projects Domain", ssp.get(1).s);

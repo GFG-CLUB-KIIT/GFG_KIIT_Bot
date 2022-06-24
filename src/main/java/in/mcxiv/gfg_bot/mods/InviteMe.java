@@ -1,11 +1,11 @@
 package in.mcxiv.gfg_bot.mods;
 
 import in.mcxiv.gfg_bot.GFG_KIIT_Bot;
+import in.mcxiv.gfg_bot.SpecialisedListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
-public class InviteMe extends ListenerAdapter {
+public class InviteMe extends SpecialisedListenerAdapter {
 
     private final GFG_KIIT_Bot bot;
 

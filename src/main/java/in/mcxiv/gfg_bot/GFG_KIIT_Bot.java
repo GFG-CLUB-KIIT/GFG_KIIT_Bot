@@ -1,6 +1,7 @@
 package in.mcxiv.gfg_bot;
 
 import com.mcxiv.logger.decorations.Format;
+import com.mcxiv.logger.tables.Table;
 import in.mcxiv.gfg_bot.mods.GFGSummerCampProjectUtilities;
 import in.mcxiv.gfg_bot.mods.InviteMe;
 import in.mcxiv.gfg_bot.mods.ResponsivenessHelper;
@@ -35,6 +36,10 @@ public class GFG_KIIT_Bot extends ListenerAdapter {
     }
 
     public static void main(String[] args) {
+        Try.setExceptionHandler((i, e) -> {
+            if (i) Table.tabulate(getInstance().resources.log, e);
+            else getInstance().error(e.getClass().getSimpleName(), e.getMessage());
+        });
         Thread inputThread = new Thread(() -> {
             new Scanner(System.in).next();
             getInstance().jda.shutdown();
@@ -60,9 +65,9 @@ public class GFG_KIIT_Bot extends ListenerAdapter {
                 .enableIntents(GatewayIntent.GUILD_MESSAGES)
                 .addEventListeners(this, listenerAdapter = new PreliminaryTestedListenerAdapter(this));
 
-        listenerAdapter.addInferiorEventListener(new ResponsivenessHelper());
-        listenerAdapter.addInferiorEventListener(new InviteMe(this));
-        listenerAdapter.addSuperiorEventListener(new GFGSummerCampProjectUtilities(this));
+        listenerAdapter.addEventListener(new ResponsivenessHelper());
+        listenerAdapter.addEventListener(new InviteMe(this));
+        listenerAdapter.addEventListener(new GFGSummerCampProjectUtilities(this));
 
         jda = Try.get(builder::build);
         Try.run(jda::awaitReady);
