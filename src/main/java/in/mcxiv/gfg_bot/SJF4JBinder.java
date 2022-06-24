@@ -32,32 +32,34 @@ public class SJF4JBinder implements ILoggerFactory {
         return bridge;
     }
 
-    @Format("::slf -> :bn:")
+    @Format({"  :: :#f80 @520 <D hh;mm;ss> %*30s b: ::", "::\t:#940 @fca n %-130s:"})
     public final class SLF4J_to_FLOG_Bridge extends MarkerIgnoringBase {
+
+        static final String NAME = "SLF4J";
 
         public void logIt(LogLevel logLevel, String msg) {
             if (logLevel.accepted())
-                log.prt(msg);
+                log.prt(NAME, msg);
         }
 
         public void logIt(LogLevel logLevel, String format, Object arg) {
             if (logLevel.accepted())
-                log.prt(MessageFormatter.format(format, arg).getMessage());
+                log.prt(NAME, MessageFormatter.format(format, arg).getMessage());
         }
 
         public void logIt(LogLevel logLevel, String format, Object arg1, Object arg2) {
             if (logLevel.accepted())
-                log.prt(MessageFormatter.format(format, arg1, arg2).getMessage());
+                log.prt(NAME, MessageFormatter.format(format, arg1, arg2).getMessage());
         }
 
         public void logIt(LogLevel logLevel, String format, Object... arguments) {
             if (logLevel.accepted())
-                log.prt(MessageFormatter.format(format, arguments).getMessage());
+                log.prt(NAME, MessageFormatter.format(format, arguments).getMessage());
         }
 
         public void logIt(LogLevel logLevel, String msg, Throwable t) {
             if (logLevel.accepted()) {
-                log.prt(msg);
+                log.prt(NAME, msg);
                 Table.tabulate(log, t);
             }
         }

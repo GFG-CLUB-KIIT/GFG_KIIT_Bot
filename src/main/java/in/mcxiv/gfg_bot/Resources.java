@@ -12,7 +12,7 @@ import java.util.ResourceBundle;
 
 public class Resources {
 
-    public static final boolean IS_UNDER_TEST = false;
+    public static final boolean IS_UNDER_TEST = true;
     public static final String NAME = "GFG KIIT Bot";
     public static final String NAME_U = "GFG_KIIT_Bot";
 

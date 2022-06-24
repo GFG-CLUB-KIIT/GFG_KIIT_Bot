@@ -79,10 +79,18 @@ public class GFGSummerCampProjectUtilities extends ListenerAdapter {
         return false;
     }
 
+    private static boolean allIn(String actual, String... matches) {
+        actual = actual.replaceAll("[^\\w]", "").toLowerCase();
+        for (String match : matches)
+            if (!actual.contains(match.replaceAll("[^\\w]", "")))
+                return false;
+        return true;
+    }
+
     private static boolean isMessageFromSummerCampProjectCategory(Channel channel) {
         if (!(channel instanceof ICategorizableChannel iCategorizableChannel)) return false;
         if (iCategorizableChannel.getParentCategory() == null) return false;
-        if (!iCategorizableChannel.getParentCategory().getName().toLowerCase().startsWith(CATEGORY_NAME)) return false;
+        if (!allIn(iCategorizableChannel.getParentCategory().getName(), CATEGORY_NAME)) return false;
         return true;
     }
 
