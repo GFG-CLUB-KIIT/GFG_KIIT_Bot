@@ -16,7 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GFGSummerCampProjectUtilities extends SpecialisedListenerAdapter {
+public class GFGSummerProjectCampUtilities extends SpecialisedListenerAdapter {
 
     // IMPORTANT, I have not used Category IDs and Channel IDs so that I can test these on another server too.
 
@@ -26,7 +26,7 @@ public class GFGSummerCampProjectUtilities extends SpecialisedListenerAdapter {
 
     private final GFG_KIIT_Bot bot;
 
-    public GFGSummerCampProjectUtilities(GFG_KIIT_Bot bot) {
+    public GFGSummerProjectCampUtilities(GFG_KIIT_Bot bot) {
         this.bot = bot;
     }
 
@@ -40,7 +40,7 @@ public class GFGSummerCampProjectUtilities extends SpecialisedListenerAdapter {
     private static boolean isMessageFromSummerCampProjectChannel(Channel channel) {
         if (!isMessageFromSummerCampProjectCategory(channel)) return false;
         if (!channel.getType().isGuild()) return false;
-        if (!channel.getName().equals(CHANNEL_NAME)) return false;
+        if (!Utilities.areSimilar(channel.getName(), CHANNEL_NAME)) return false;
         if (channel.getType() != ChannelType.TEXT) return false;
         return true;
     }
@@ -73,8 +73,8 @@ public class GFGSummerCampProjectUtilities extends SpecialisedListenerAdapter {
         if (!contentDisplay.contains("delete")) return false;
         List<GuildChannel> channels = event.getMessage().getMentions().getChannels();
         if (channels.isEmpty()) return false;
-        channels = channels.stream().filter(GFGSummerCampProjectUtilities::isMessageFromSummerCampProjectCategory)
-                .filter(guildChannel -> !guildChannel.getName().equals(CHANNEL_NAME)).toList();
+        channels = channels.stream().filter(GFGSummerProjectCampUtilities::isMessageFromSummerCampProjectCategory)
+                .filter(guildChannel -> !Utilities.areSimilar(guildChannel.getName(), CHANNEL_NAME)).toList();
         if (channels.isEmpty()) return true;
         if (!event.getMember().hasPermission(Permission.MANAGE_CHANNEL)) return true;
         channels.forEach(guildChannel -> guildChannel.delete().queue());

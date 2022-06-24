@@ -2,7 +2,7 @@ package in.mcxiv.gfg_bot;
 
 import com.mcxiv.logger.decorations.Format;
 import com.mcxiv.logger.tables.Table;
-import in.mcxiv.gfg_bot.mods.GFGSummerCampProjectUtilities;
+import in.mcxiv.gfg_bot.mods.GFGSummerProjectCampUtilities;
 import in.mcxiv.gfg_bot.mods.InviteMe;
 import in.mcxiv.gfg_bot.mods.ResponsivenessHelper;
 import in.mcxiv.tryCatchSuite.Try;
@@ -67,7 +67,7 @@ public class GFG_KIIT_Bot extends ListenerAdapter {
 
         listenerAdapter.addEventListener(new ResponsivenessHelper());
         listenerAdapter.addEventListener(new InviteMe(this));
-        listenerAdapter.addEventListener(new GFGSummerCampProjectUtilities(this));
+        listenerAdapter.addEventListener(new GFGSummerProjectCampUtilities(this));
 
         jda = Try.get(builder::build);
         Try.run(jda::awaitReady);

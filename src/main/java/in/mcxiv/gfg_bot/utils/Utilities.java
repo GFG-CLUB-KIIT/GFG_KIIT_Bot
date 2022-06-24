@@ -15,6 +15,10 @@ public final class Utilities {
     private Utilities() {
     }
 
+    public static boolean areSimilar(String a, String b) {
+        return a.replace("[^\\w]", "").toLowerCase().contains(b.toLowerCase());
+    }
+
     public static boolean isOneOf(String actual, String... matches) {
         actual = actual.replaceAll("[^\\w]", "");
         for (String match : matches)
